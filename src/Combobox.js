@@ -1,12 +1,31 @@
 import Select from 'react-select';
 import { useState } from 'react';
+import PropTypes from 'prop-types';
 
+// export const 
 
-const Combobox = (props) => {
-  const height   = 30;
-  const fontSize = 13;
-  const width    = 150;
+const Combobox = (props, e2) => {
+
+  const optionList = [
+    { value: '0', value2: '00', label: '',  },
+    { value: '1', value2: '11', label: 'strawberry2',  },
+    { value: '2', value2: '22', label: <label style={{whiteSpace:'nowrap'}}>ㅋㅋxxxxxxxxxxxxxxxxxxxㅋㅋㅋ</label> },
+    { value: '3', value2: '33', label: 'Van111111111111111111i2222222222222lla1' },
+    { value: '4', value2: '44', label: 'Vani112222222222222lla1' },
+    { value: '5', value2: '55', label: 'asdf' }
+  ]
   
+  const height   = props.height;
+  const fontSize = props.fontSize;
+  const width    = props.width;
+
+  if(props.id === 'cb1')
+    optionList.push({ value: '6', value2: '66', label: '666' })
+ 
+  const [options, setOption] = useState(optionList);
+  const [isFoucs, setFocus] = useState('none');
+  
+  //#region 스타일
   const customStyles = {
     container: (base) => ({
       ...base,
@@ -32,7 +51,8 @@ const Combobox = (props) => {
     indicatorsContainer: (base) => ({
       ...base,
       height: height - 3,
-      padding: 0
+      padding: 0,
+      display: isFoucs //'none', 'flex'
     }),
     
     input: (base) => ({
@@ -54,75 +74,113 @@ const Combobox = (props) => {
 
     placeholder: (base) => ({
       ...base,
-      margin: '0px 0px 0px 4px'
+      margin: '0px 0px 0px 4px',
+      display: isFoucs //'none', 'flex'
     })
   }
+  //#endregion
 
-  const option = [
-    { value: '0', value2: '00', label: '',  },
-    { value: '1', value2: '11', label: 'strawberry2',  },
-    { value: '2', value2: '22', label: <label style={{whiteSpace:'nowrap'}}>ㅋㅋxxxxxxxxxxxxxxxxxxxㅋㅋㅋ</label> },
-    { value: '3', value2: '33', label: 'Van111111111111111111i2222222222222lla1' },
-    { value: '4', value2: '44', label: 'Vani112222222222222lla1' },
-    { value: '5', value2: '55', label: 'asdf' }
-  ]
+  //#region 이벤트
+  const onFocusBase = (e) => {
+    setFocus('flex');
+    props.onFocus(e);
+  };
 
-  const [options, setOption] = useState(option);
+  const onBlurBase = (e) => {
+    setFocus('none');
+    props.onBlur(e);
+  };
+
+  const onInputChangeBase = (value, action) => {
+    if(action.action === 'input-change'){
+      setOption(
+        optionList.filter((e) => {
+          if(typeof(e.label) === 'string'){
+            return e.label.toLowerCase().indexOf(value.toLowerCase()) >= 0;
+          }else if(e.label.props !== undefined){
+            return e.label.props.children.toLowerCase().indexOf(value.toLowerCase()) >= 0
+          }else 
+            return false;
+        })
+      )
+    }
+  };
+  //#endregion
 
   return (
     <>
-      <div style={{float:'left', marginRight:'3px'}}>
-        <label htmlFor='test2'>ggg</label>
-      </div>
+      {props.label !== '' && props.label !== undefined &&
+        <div style={{float:'left', marginRight:'3px'}}>
+          <label htmlFor={props.id}>{props.label}</label>
+        </div>
+      }
 
       <div style={{float:'left'}}>
         <Select options={options}  
                 styles={customStyles}
-                inputId='test2'
-
+                inputId={props.id}
                 filterOption={null}
               
-                // menuIsOpen = {true}
-                // isRtl = {true} 좌우반전
                 // defaultValue={option[1]} //이건 이방법뿐인듯 따로 기능구현
-                // onChange={(e1, e2) => console.log(e1, e2) }        
-                // onFocus={(e1) => console.log(e1)}
-                // onBlur={(e1) => console.log(e1)}
-                // blurInputOnSelect = {true} // 선택후 포커스 빠지게 하는 기능
-                // closeMenuOnSelect = {true} // 선택후 리스트 닫히는 기능
-                // isMulti = {true} // 멀티선택기능
-                //  onMenuOpen = {() => setSearchInput({'value': '1'})}
-                // onMenuClose = {() => 'undefined'} 
-                // isSearchable = {false}
-                onInputChange={(value, action) => {
-                  if(action.action === 'input-change'){
-                    setOption(
-                      option.filter((e) => {
-                        if(typeof(e.label) === 'string'){
-                          return e.label.indexOf(value) >= 0;
-                        }else if(e.label.props !== undefined){
-                          return e.label.props.children.indexOf(value) >= 0
-                        }else return false;
-                      })
-                    )
-                    // setOption(option.filter(e => e.label.indexOf(value) >= 0))
-                  }
-                }}
+                onFocus={(e) => onFocusBase(e)}
+                onBlur={(e) => onBlurBase(e)}
+
+                onInputChange={(value, action) => onInputChangeBase(value, action)}
         />
       </div>
-
+{/* 
       <button style={{width:100, height:50}} 
         onClick={() => {
-          setOption(option.filter(e => e.value2 === '22'))
+          setOption(optionList.filter(e => e.value2 === '22'))
         }}
       />
       <button style={{width:100, height:50}} 
         onClick={() => {
-          setOption(option)
+          setOption(optionList)
         }}
-      />
+      /> */}
     </>
   );
 }
+
+Combobox.propTypes = {
+  id          : PropTypes.string.isRequired,
+  width       : PropTypes.number,
+  height      : PropTypes.number,
+  fontSize    : PropTypes.number,
+  label       : PropTypes.string,
+  menuIsOpen  : PropTypes.bool,
+  isRtl       : PropTypes.bool,
+  isSearchable: PropTypes.bool,
+  isMulti     : PropTypes.bool,
+  blurInputOnSelect: PropTypes.bool,
+  closeMenuOnSelect: PropTypes.bool,
+
+  onChange    : PropTypes.func,
+  onMenuOpen  : PropTypes.func,
+  onMenuClose : PropTypes.func,
+  onFocus     : PropTypes.func,
+  onBlur      : PropTypes.func
+};
+
+Combobox.defaultProps = {
+  id          : undefined,
+  width       : 150,
+  height      : 23,
+  fontSize    : 13,
+  label       : '',
+  menuIsOpen  : false,
+  isRtl       : false,
+  isSearchable: true,
+  isMulti     : false,
+  blurInputOnSelect: false,
+  closeMenuOnSelect: false,
+
+  onChange    : (e) => {},
+  onMenuOpen  : () => {},
+  onMenuClose : () => {},
+  onFocus     : (e) => {},
+  onBlur      : (e) => {}
+};
 
 export default Combobox;
